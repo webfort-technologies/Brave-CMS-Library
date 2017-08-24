@@ -4,7 +4,7 @@
 	Author 				: Shishir Raven. 
 	Last Modified on 	: 23/8/2017
 	Example of how to user the class starts here
-	$config['query'] = "SELECT * FROM issue_comments WHERE id = '".$_REQUEST["issue_id"]."'";
+	$config['query'] = "SELECT * FROM issue_comments WHERE id = '".$_GET["issue_id"]."'";
 	$config['rows_per_page'] = 3;
 	$config['page_no_variable']="page_no";
 	$rec_page = new pagination($config);
@@ -62,7 +62,7 @@ class pagination
 	?>
 		<form name="per_page2" action="" method="get">
 			<select name="per_page" id="per_page" onChange='location.replace("<?php
-			$data= $_REQUEST;
+			$data= $_GET;
 			if(isset($data["per_page"]))
 			{
 				unset($data["per_page"]);
@@ -108,8 +108,8 @@ class pagination
 			$this->initialize($params);
 		
 		}	
-		if(isset($_REQUEST['per_page'])){
-			$this->rows_per_page = $_REQUEST['per_page'];
+		if(isset($_GET['per_page'])){
+			$this->rows_per_page = $_GET['per_page'];
 			
 		}
 		$this->get_current_page();
@@ -120,15 +120,15 @@ class pagination
 
 	function get_current_page()
 	{
-		if(isset($_REQUEST[$this->page_no_variable]))
+		if(isset($_GET[$this->page_no_variable]))
 		{
-			$this->cur_page=$_REQUEST[$this->page_no_variable];
+			$this->cur_page=$_GET[$this->page_no_variable];
 		}
 	}
 	
 	function sortable_label($table_field_name,$label)
 	{
-		$data = $_REQUEST;
+		$data = $_GET;
 		// REMOVING THE PREVIOUS sort_by COLUMN. 
 		if(isset($data['sort_by']))
 		{
@@ -139,7 +139,7 @@ class pagination
 		// CHECKING TO SEE IF THE LABLE VALUE IS EQUAL TO THE CURRENT SELECTION
 		$sort_img ="";
 		
-			if(isset($_REQUEST['sort_by']) && $_REQUEST['sort_by']==$table_field_name && ($_REQUEST['sort_direction']=="" || $_REQUEST['sort_direction']=="desc"))
+			if(isset($_GET['sort_by']) && $_GET['sort_by']==$table_field_name && ($_GET['sort_direction']=="" || $_GET['sort_direction']=="desc"))
 			{
 				$data['sort_by'] = $table_field_name;
 				$data['sort_direction']='asc';
@@ -150,7 +150,7 @@ class pagination
 			{
 				$data['sort_by'] = $table_field_name;
 				$data['sort_direction']='desc';
-				if(isset($_REQUEST['sort_by']) && $_REQUEST['sort_by']==$table_field_name)
+				if(isset($_GET['sort_by']) && $_GET['sort_by']==$table_field_name)
 				{
 					$sort_img="<img src='".$this->icon_desc."' />";
 				}
@@ -162,7 +162,7 @@ class pagination
 	// GET ARRAY 
 	function query_limit()
 	{
-		 $data = mysqli_query($this->con,$this->query) or die(mysqli_error($this->con)); 
+		 $data = mysqli_query($this->con,$this->query) or die(mysqli_error($this->con).$this->query); 
 		 $rows = mysqli_num_rows($data);
 		 $this->total_rows 	=  $rows ;
 		if($rows>0)
@@ -196,11 +196,11 @@ class pagination
 	
 		$result_array=array();
 		
-		if(isset($_REQUEST['sort_by']) && $_REQUEST['sort_by']!="" )
-		//if(($_REQUEST['sort_by']) && ($_REQUEST['sort_by']!=""))
+		if(isset($_GET['sort_by']) && $_GET['sort_by']!="" )
+		//if(($_GET['sort_by']) && ($_GET['sort_by']!=""))
 		{
-			$order_by = " order by ".$_REQUEST['sort_by']." ".$_REQUEST['sort_direction']. " ";
-			//$filter_by = " and select_option ="."'".$_REQUEST['filter_by']."'";
+			$order_by = " order by ".$_GET['sort_by']." ".$_GET['sort_direction']. " ";
+			//$filter_by = " and select_option ="."'".$_GET['filter_by']."'";
 		//	echo $order_by;
 			//order by question_answer asc
 			
@@ -211,7 +211,7 @@ class pagination
 		}
 		//echo $this->query.$order_by.$this->limit;
 		//exit();
-		$result=mysqli_query($this->con,$this->query.$order_by.$this->limit) or die(mysqli_error($this->con));
+		$result=mysqli_query($this->con,$this->query.$order_by.$this->limit) or die(mysqli_error($this->con).$this->query.$this->limit);
 		
 		if(mysqli_num_rows($result)>0)
 		{
@@ -264,12 +264,12 @@ function show_links_google_type($hash_string="")
 		$cur_page_number=1;
 		echo "<ul class='pagination'>";
 		$link="";
-		$querystring_array = $_REQUEST;
+		$querystring_array = $_GET;
 		
 
-		if(isset($_REQUEST[$this->page_no_variable]))
+		if(isset($_GET[$this->page_no_variable]))
 		{
-			$cur_page_number=$_REQUEST[$this->page_no_variable];
+			$cur_page_number=$_GET[$this->page_no_variable];
 		}
 		
 		$querystring_array[$this->page_no_variable]=$cur_page_number;
@@ -352,7 +352,22 @@ function show_links_google_type($hash_string="")
 		return $this->total_rows;
 	
 	}
+
+	function has_results()
+	{
+		if($this->total_rows>0)
+		{
+			return true;
+		}
+	}
 	
+	function has_no_results()
+	{
+		if($this->total_rows<=0)
+		{
+			return true;
+		}
+	}
 }// Class Ends here 
 	
 
