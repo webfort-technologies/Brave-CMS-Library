@@ -52,8 +52,44 @@ class pagination
 			}
 		}
 	}
-	
-	
+	/*  
+	When Function Called Shows a dropdown from which user can choose
+	how many records he may like to display
+	*/
+	function perpage_selector_new()
+	{
+	?>
+	<div class="btn-group dropup">
+	    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle page-size-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	        <?php 
+	        if(isset($_GET['per_page']))
+			{
+				echo $_GET['per_page'];
+			}
+			else
+			{
+				echo $this->rows_per_page;
+			} ?>
+	    </button>
+	    <div class="dropdown-menu">
+	    	<?php 
+	    	for ($i=10; $i < 100 ; $i=$i+10) { 
+	    	?>
+	        <a class="dropdown-item" href="<?php
+			$data= $_GET;
+			if(isset($data["per_page"]))
+			{
+				unset($data["per_page"]);
+			}
+			echo $_SERVER['PHP_SELF']."?".http_build_query($data); ?>&per_page=<?php echo $i;?>"><?php echo $i;?></a>
+	       	<?php 
+	       	} 
+	       	?>
+	    </div>
+	</div>
+	<?php
+	}
+
 	/*  When Function Called Shows a dropdown from which user can choose
 		how many records he may like to display
 	*/
@@ -112,10 +148,16 @@ class pagination
 			$this->rows_per_page = $_GET['per_page'];
 			
 		}
+		$this->postExeuctionQueryhook();
 		$this->get_current_page();
 		$this->query_limit();
 		$this->get_pagename();
 		
+	}
+
+	function postExeuctionQueryhook()
+	{
+
 	}
 
 	function get_current_page()
@@ -143,7 +185,7 @@ class pagination
 			{
 				$data['sort_by'] = $table_field_name;
 				$data['sort_direction']='asc';
-				$sort_img="<img src='".$this->icon_asc."' />";
+				$sort_img="<i class='fas fa-caret-up'></i>";
 				
 			}
 			else
@@ -152,13 +194,12 @@ class pagination
 				$data['sort_direction']='desc';
 				if(isset($_GET['sort_by']) && $_GET['sort_by']==$table_field_name)
 				{
-					$sort_img="<img src='".$this->icon_desc."' />";
+					$sort_img="<i class='fas fa-caret-down'></i>";
 				}
 			}
 		echo "<a href='".$_SERVER['PHP_SELF']."?".http_build_query($data)."' >"."".$sort_img." ".$label."</a>";
 		}
 	
-	 
 	// GET ARRAY 
 	function query_limit()
 	{
@@ -242,7 +283,6 @@ class pagination
 		
 	}
 	
-
 	function pagebreak_google_type($cur,$tot)
 	{
 		
@@ -259,7 +299,200 @@ class pagination
 		
 	}
 
-function show_links_google_type($hash_string="")
+	function prev_link($hash_string="")
+	{
+		$cur_page_number=1;
+		$querystring_array = $_GET;
+		if(isset($_GET[$this->page_no_variable]))
+		{
+			$cur_page_number=$_GET[$this->page_no_variable];
+		}
+		if($cur_page_number!=1)
+		{
+			$querystring_array[$this->page_no_variable] = $cur_page_number - 1;
+			$query_string = http_build_query($querystring_array);
+			return $this->page_name."?".$query_string.$hash_string;
+		}
+		else
+		{
+			return ""; 
+		}
+	}
+
+	function next_link($hash_string="")
+	{
+		$cur_page_number=1;
+		$querystring_array = $_GET;
+		if(isset($_GET[$this->page_no_variable]))
+		{
+			$cur_page_number=$_GET[$this->page_no_variable];
+		}
+		if($cur_page_number<=$this->total_pages)
+		{
+			$querystring_array[$this->page_no_variable] = $cur_page_number + 1;
+			$query_string = http_build_query($querystring_array);
+			return $this->page_name."?".$query_string.$hash_string;
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+	function show_links_new($hash_string="")
+	{
+		$cur_page_number=1;
+		$link="";
+		$querystring_array = $_GET;
+
+		if(isset($_GET[$this->page_no_variable]))
+		{
+			$cur_page_number=$_GET[$this->page_no_variable];
+		}
+		
+		$querystring_array[$this->page_no_variable]=$cur_page_number;
+		$this->pagebreak_google_type($cur_page_number,$this->total_pages);
+		?>
+		<nav aria-label="...">
+                                <ul class="pagination m-0">
+                                    
+                                    <?php 
+                                    if($cur_page_number==1)
+									{
+									// If its the First Page
+		 							?>
+                                    <li class="page-item p-item disabled">
+                                        <a class="page-link p-link" href="#" tabindex="-1" aria-disabled="true">
+                                            <i class="fa fa-angle-double-left" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item p-item disabled">
+                                        <a class="page-link p-link" href="#" tabindex="-1" aria-disabled="true">
+                                            <i class="fa fa-angle-left" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                    <?php
+                                	}
+                                    ?>
+
+                                    <?php 
+                                    if($cur_page_number!=1)
+									{
+
+									// If its  Not rst Page
+									$querystring_array[$this->page_no_variable] = 1;
+									$query_string = http_build_query($querystring_array);	
+									$link .= "<li class='".$this->link_class."' ><a href='".$this->page_name."?".$query_string.$hash_string."'>First</a></li>";
+									
+		 							?>
+                                    <li class="page-item p-item backward-btn">
+                                        <a class="page-link p-link" 
+                                        href="<?php echo $this->page_name."?".$query_string.$hash_string; ?>" 
+                                        tabindex="-1" >
+                                            <i class="fa fa-angle-double-left" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+									<?php 
+									$prev_link=	$cur_page_number-1;
+									$querystring_array[$this->page_no_variable] = $prev_link;
+									$query_string = http_build_query($querystring_array);
+									?>
+	
+                                    <li class="page-item p-item backward-btn">
+                                        <a class="page-link p-link" 
+                                        	href="<?php echo $this->page_name."?".$query_string.$hash_string; ?>" 
+                                        	tabindex="-1">
+                                            <i class="fa fa-angle-left" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+									<?php
+									}
+                                    ?>
+
+                                    <?php 
+                                    // Displaying the Middle Stuff. 
+
+									for($i=$this->mins;$i<=$this->maxs;$i++)
+									{
+										$querystring_array[$this->page_no_variable] = $i;
+										$query_string = http_build_query($querystring_array);	
+										?>
+										<li class="page-item p-item <?php if($i==$this->cur_page) { echo 'active'; } ?>" aria-current="page">
+	                                        <a class="page-link p-link" href="<?php echo $this->page_name."?".$query_string.$hash_string; ?>"><?php echo $i;  ?></a>
+	                                    </li>
+									<?php
+									}
+									?>
+                                    <!-- <li class="page-item p-item d-none d-sm-block">
+                                        <a class="page-link p-link" href="#">
+                                            <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+                                        </a>
+                                    </li> -->
+
+
+
+                                    <?php 
+                                    if($cur_page_number!=$this->total_pages)
+									{ 
+										$prev_link=	$cur_page_number+1;
+										$querystring_array[$this->page_no_variable] = $prev_link;
+										$query_string = http_build_query($querystring_array);	
+									?>
+                                    <li class="page-item p-item forword-btn">
+                                        <a class="page-link p-link" 
+                                        href="<?php echo $this->page_name."?".$query_string.$hash_string; ?>">
+                                            <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                    <?php 
+                                    $querystring_array[$this->page_no_variable] = $this->total_pages;
+									$query_string = http_build_query($querystring_array); ?>
+                                    <li class="page-item p-item forword-btn">
+                                        <a class="page-link p-link" 
+                                        href="<?php echo $this->page_name."?".$query_string.$hash_string; ?>">
+                                            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                    <?php 
+                                    }
+                                    ?>
+
+                                    <?php 
+                                    if($cur_page_number==$this->total_pages)
+									{
+									?>
+									<li class="page-item p-item disabled">
+                                        <a class="page-link p-link" 
+                                        href="#">
+                                            <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item p-item disabled">
+                                        <a class="page-link p-link" 
+                                        href="#">
+                                            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+									<?php
+									}
+									?>	
+                                </ul>
+                            </nav>
+
+		<?php
+	}
+
+	function totalPages()
+	{
+		return $this->total_pages; 
+	}
+
+	function totalResults()
+	{
+		return $this->total_rows;
+	}
+
+	function show_links_google_type($hash_string="")
 	{
 		$cur_page_number=1;
 		echo "<ul class='pagination'>";
@@ -368,6 +601,20 @@ function show_links_google_type($hash_string="")
 			return true;
 		}
 	}
+
+	function record_statement()
+	{
+		$starting_limit = (($this->cur_page - 1) * $this->rows_per_page)+1; 
+		$end_limit = (($this->cur_page - 1) * $this->rows_per_page)+$this->rows_per_page; 
+		if($end_limit>$this->show_total_records())
+		{
+			$end_limit = $this->show_total_records();
+		}
+		?>	
+			Displaying <?php echo $starting_limit;  ?> - <?php echo $end_limit;  ?> of <?php echo $this->show_total_records(); ?> records
+		<?php
+	}
+
 }// Class Ends here 
 	
 
