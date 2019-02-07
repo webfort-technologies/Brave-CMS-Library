@@ -169,7 +169,7 @@ class pagination_with_search extends pagination_extended
               }
 
               $final_date = date('Y-m-d H:i:s',$final_time);
-              $final_date = str_replace(" 00:00:00", "", $final_date);
+             // $final_date = str_replace(" 00:00:00", "", $final_date);
               return "'".$final_date."'";
             }
             ,$fql_where);

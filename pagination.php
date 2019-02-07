@@ -73,7 +73,20 @@ class pagination
 	    </button>
 	    <div class="dropdown-menu">
 	    	<?php 
-	    	for ($i=10; $i < 100 ; $i=$i+10) { 
+	    	for ($i=10; $i <= 500 ; $i = $i + 10) { 
+					if($i>50)
+					{
+						$i = $i+15; 
+					}
+					if($i>100)
+					{
+						$i = $i+25; 
+					}
+					if($i>200)
+					{
+						$i = $i+50; 
+					}
+				
 	    	?>
 	        <a class="dropdown-item" href="<?php
 			$data= $_GET;

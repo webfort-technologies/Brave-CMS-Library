@@ -1,4 +1,5 @@
 <?php
+
 /*
 Programmer : Shishir Raven
 Purpose : Class to create thumbnail at runtime for Bigger images
@@ -17,21 +18,20 @@ b) This code first checks the Thumbnail folder inside the Image folder to see if
 Note : Create a folder named thumb and give it wirte rights before you use the class. 
 
 */
-
 /*   Example of how to use the class
-include("./thumbnailer.php");
+include("../thumbnailer.php");
 $config['image']="sample.jpg";
 $config['folder']="images";
 $config['width'] ="100";
 $config['height']="300";
 $config['compression']="100";
 $config['fit_to_box']=true;
+$config['fit_to_scale']=true;
 $thumb1 = new thumbnailer($config);
 echo "<img src='".$thumb1->create_thumb()."'/>";
  */
 Class thumbnailer
 {
-
 	var $image="";
 	var $folder="";
 	var $width="";
@@ -42,6 +42,11 @@ Class thumbnailer
 	var $old_image_width="";
 	var $old_image_height="";
 	var $fit_to_box=false;
+	var $fit_to_scale=false;
+	var $fit_aspect_ratio=false;
+	var $orignal_width="";
+	var $orignal_height="";
+
 	//Initializer function - We pass a array. Matches array keys with the class variable. if they match sets class vaiable value equal to the array key value.
 	
 	function initializer($config= array())
@@ -56,6 +61,8 @@ Class thumbnailer
 						}
 				}
 		}
+		$this->orignal_width=$this->width;
+		$this->orignal_height=$this->height;
 	}
 	
 	
@@ -67,21 +74,27 @@ Class thumbnailer
 		$this->initializer($config);
 		// $imagepath =$this->folder."/".$this->image;
 		$imagepath =$this->folder."/".$this->image;
-		if(file_exists($imagepath)) {
+		if(file_exists($imagepath) && !is_dir($imagepath)) {
 			$this->create_new_image();
-			
 			$this->check_dimensions();
 		}
 	}	
 	
 	// The following function checks to see if the image thumnail is already build
 	function create_thumb()
-	{
-				$thumbpath =$this->folder."/thumbs/".$this->width."_".$this->height."_".$this->image;
+	{	
+		if($this->fit_to_scale === true)
+		{
+			$thumbpath = $this->folder."/thumbs/fts_".$this->width."_".$this->height."_".$this->image;
+		}
+		else
+		{
+			$thumbpath = $this->folder."/thumbs/ftb_".$this->width."_".$this->height."_".$this->image;
+		}
 			   	if(!file_exists($thumbpath)) // Checking to see it the file already exists or not 
                 {	 
-					$imagepath =$this->folder."/".$this->image;
-					if(file_exists($imagepath)) {
+					$imagepath = $this->folder."/".$this->image; 
+					if(file_exists($imagepath) && !is_dir($imagepath)) {
 						
 						$this->resize();
 						$this->save($this->new_image_type);
@@ -134,6 +147,59 @@ Class thumbnailer
      
 		$crop_x_offset = 0;
 		$crop_y_offset = 0;
+		if($this->fit_to_scale === true)
+		{	
+			$source_image_path=$this->folder.$this->image;
+			$thumbnail_image_path=$this->folder."thumbs/".$this->width."_".$this->height."_".$this->image;
+			
+			$source_image_width=$this->old_image_width ;
+			$source_image_height=$this->old_image_height;
+
+			$source_aspect_ratio = $source_image_width / $source_image_height;
+			$thumbnail_aspect_ratio = $this->width / $this->height;
+			if ($source_image_width <= $this->width && $source_image_height <= $this->height)
+			{
+				$thumbnail_image_width = $source_image_width;
+				$thumbnail_image_height = $source_image_height;
+			}
+			elseif ($thumbnail_aspect_ratio > $source_aspect_ratio)
+			{
+				$thumbnail_image_width = (int) ($this->height * $source_aspect_ratio);
+				$thumbnail_image_height = $this->height;
+			}
+			else 
+			{
+				$thumbnail_image_width = $this->width;
+				$thumbnail_image_height = (int) ($this->width / $source_aspect_ratio);
+			}
+			if ($this->fit_aspect_ratio == true) {
+				$thumbnail_gd_image = imagecreatetruecolor($this->old_image_width, $this->old_image_height);
+			}
+			else{
+				$thumbnail_gd_image = imagecreatetruecolor($this->width, $this->height);
+			}
+			
+			$dest_starting_x_corrdinate=round(($this->width-$thumbnail_image_width)/2);
+			$dest_starting_y_corrdinate=round(($this->height-$thumbnail_image_height)/2);
+			imagealphablending($thumbnail_gd_image, FALSE);
+        	imagesavealpha($thumbnail_gd_image, TRUE);
+    
+			$whiteBackground = imagecolorallocatealpha($thumbnail_gd_image,255, 255, 255, 127);
+			
+			imagefill($thumbnail_gd_image,0,0,$whiteBackground);
+
+			if ($this->fit_aspect_ratio == true) {
+				
+				imagecopyresampled($thumbnail_gd_image, $this->new_image, $dest_starting_x_corrdinate, $dest_starting_y_corrdinate, 0, 0, $this->old_image_width, $this->old_image_height, $source_image_width, $source_image_height);
+			}
+			else{
+				imagecopyresampled($thumbnail_gd_image, $this->new_image, $dest_starting_x_corrdinate, $dest_starting_y_corrdinate, 0, 0, $thumbnail_image_width, $thumbnail_image_height, $source_image_width, $source_image_height);
+			}
+			
+			$this->new_image = $thumbnail_gd_image;  
+		}
+		else
+		{
 		if($this->fit_to_box === true)
 		{
 		
@@ -161,7 +227,13 @@ Class thumbnailer
 		
 		}
 	  // code ends here 
-		$new_image_final = imagecreatetruecolor($this->width, $this->height);
+		if ($this->fit_aspect_ratio == true) {
+			$new_image_final = imagecreatetruecolor($this->old_image_width, $this->old_image_height);
+		}
+		else{
+			$new_image_final = imagecreatetruecolor($this->width, $this->height);
+		}
+		
 		
 	 // preserve transparency for PNG and GIF images
 		
@@ -177,27 +249,39 @@ Class thumbnailer
           //   set the flag to save alpha channel
            imagesavealpha($new_image_final, true);
         }
-		
-	imagecopyresampled($new_image_final, $this->new_image,0, 0, $crop_x_offset, $crop_y_offset,  $this->width, $this->height, $this->old_image_width, $this->old_image_height);
+		if ($this->fit_aspect_ratio == true) {
+			imagecopyresampled($new_image_final, $this->new_image,0, 0, $crop_x_offset, $crop_y_offset,  $this->old_image_width, $this->old_image_height, $this->old_image_width, $this->old_image_height);
+		}
+		else{
+			imagecopyresampled($new_image_final, $this->new_image,0, 0, $crop_x_offset, $crop_y_offset,  $this->width, $this->height, $this->old_image_width, $this->old_image_height);
+		}
+	
 	  //imagecopyresampled($new_image, $this->new_image,  0,0,0, 0, $this->width, $this->height, $this->old_image_width, $this->old_image_height);
 	  
       $this->new_image = $new_image_final;   
-	  
+	  }
    }  
 		
 	
 	// Saving Thumbail
 	function save($image_type) 
 	{
-		//echo "image_type =".$image_type; 
-		
-	  $filename =$this->folder."/thumbs/".$this->width."_".$this->height."_".$this->image;
+
+		if($this->fit_to_scale === true)
+		{
+			 $filename =$this->folder."/thumbs/fts_".$this->orignal_width."_".$this->orignal_height."_".$this->image;
+		}
+		else
+		{
+			 $filename =$this->folder."/thumbs/ftb_".$this->orignal_width."_".$this->orignal_height."_".$this->image;
+		}
+	 
 	  if( $image_type == IMAGETYPE_JPEG ) {
          imagejpeg($this->new_image,$filename,$this->compression);
       } elseif( $image_type == IMAGETYPE_GIF ) {
          imagegif($this->new_image,$filename);         
       } elseif( $image_type == IMAGETYPE_PNG ) {
-			imagepng($this->new_image,$filename);
+		imagepng($this->new_image,$filename);
 			
       }   
    }
