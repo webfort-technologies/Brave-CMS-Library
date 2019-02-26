@@ -52,14 +52,6 @@ include("pagination_extended.php");
 	---------------------------------------------------------
 
 	--------------------
-	3. Greater than Search
-	--------------------
-	Prefix. 
-	gts__ 	: Value Lesser than  / field  <= %term%
-	
-	Example : 
-	<input name="gts__table_name--fieldname"/>
-	---------------------------------------------------------
 
 	--------------------
 	4. EXACT SEARCH
@@ -104,7 +96,7 @@ include("pagination_extended.php");
     Like more than one categories can be applied to a single record. 
 
 	Prefix. 
-	gts__ 	: 
+	js__ 	: 
 
 	Structure of Field Name : First Table -> Junction -> Relational Table. 
 	a. First Table Name. 
@@ -178,7 +170,10 @@ class pagination_with_search extends pagination_extended
 	
 	function postExeuctionQueryhook()
 	{
-		$this->query = "select * from (".$this->query.") as fql ".$this->fql_where;
+		if(isset($_GET['filter']) && $_GET['filter']!="")
+		{
+			$this->query = "select * from (".$this->query.") as fql ".$this->fql_where;
+		}
 		//echo $this->query; 
 		//exit; 
 	}
@@ -193,34 +188,13 @@ class pagination_with_search extends pagination_extended
 		// Looping the data starts here, 
 		foreach($data as $data_key => $data_value)
 		{
-			//-----------------------------------------------
-			// LIKE SEARCH
-			//-----------------------------------------------  
-			if(strstr($data_key, 's__'))
-			{
-				// Starting to make the search array starts here. 
-				if(strstr($data_key, '--'))
-				{
-				$data_key= str_replace('--','.', $data_key);
-				}
-				if($data_value=='active')
-				{
-					$where[] = $data_key. " = '". $data_value."'";
-					array($data_key=>$data_value);
-				}
-				else 
-					if($data_value!="")
-					{
-						$where[] = $data_key. " like '%". $data_value."%'";
-					}
-			}
-			//-----------------------------------------------
-
+			$data_key = str_replace("___", "--", $data_key);
 			//-----------------------------------------------
 			// LESSER THAN SEARCH
 			//-----------------------------------------------
 			if(strstr($data_key, 'lts__'))
 			{
+				$data_key= str_replace('lts__','',$data_key);
 				if(strstr($data_key, '--'))
 				{
 					$data_key= str_replace('--','.', $data_key);
@@ -237,6 +211,7 @@ class pagination_with_search extends pagination_extended
 			//-----------------------------------------------
 			if(strstr($data_key, 'gts__'))
 			{
+				$data_key= str_replace('gts__','',$data_key);
 				if(strstr($data_key, '--'))
 				{
 					$data_key= str_replace('--','.', $data_key);
@@ -252,6 +227,7 @@ class pagination_with_search extends pagination_extended
 			//-----------------------------------------------
 			if(strstr($data_key, 'rs__'))
 			{	
+				$data_key= str_replace('rs__','',$data_key);
 				list($table, $junction_table, $jun_field1, $jun_field2,$relational_table) = explode("--", $data_key);
 				if($data_value!="")
 				{
@@ -266,6 +242,7 @@ class pagination_with_search extends pagination_extended
 			//-----------------------------------------------	
 			if(strstr($data_key, 'es__'))
 			{
+				$data_key= str_replace('es__','',$data_key);
 				// Starting to make the search array starts here. 
 				if(strstr($data_key, '--'))
 				{
@@ -283,6 +260,7 @@ class pagination_with_search extends pagination_extended
 			//-----------------------------------------------
 			if(strstr($data_key, 'fts__'))
 			{
+				$data_key= str_replace('fts__','',$data_key);
 				// Starting to make the search array starts here. 
 				if(strstr($data_key, '--'))
 				{
@@ -309,6 +287,7 @@ class pagination_with_search extends pagination_extended
 			//-------------------------------------------------------------
 			if(strstr($data_key, 'ms__'))
 			{	
+				$data_key= str_replace('ms__','',$data_key);
 				// Starting to make the search array starts here. 
 				if(strstr($data_key, '--'))
 				{
@@ -341,6 +320,7 @@ class pagination_with_search extends pagination_extended
 			//-------------------------------------------------------------
 			if(strstr($data_key, 'ds__'))
 			{
+				$data_key= str_replace('ds__','',$data_key);
 				if($data_value!="")
 				{
 					// Starting to make the search array starts here. 
@@ -353,6 +333,30 @@ class pagination_with_search extends pagination_extended
 				}
 			}
 			// --------------------------------------------------------------
+
+			//-----------------------------------------------
+			// LIKE SEARCH
+			//-----------------------------------------------  
+			if(strstr($data_key, 's__'))
+			{
+				$data_key= str_replace('s__','',$data_key);
+				// Starting to make the search array starts here. 
+				if(strstr($data_key, '--'))
+				{
+				$data_key= str_replace('--','.', $data_key);
+				}
+				if($data_value=='active')
+				{
+					$where[] = $data_key. " = '". $data_value."'";
+					array($data_key=>$data_value);
+				}
+				else 
+					if($data_value!="")
+					{
+						$where[] = $data_key. " like '%". $data_value."%'";
+					}
+			}
+			//-----------------------------------------------
 			
 		}
 		// Checking to see if the where clause has more than one value. 
@@ -375,14 +379,14 @@ class pagination_with_search extends pagination_extended
 				list($before, $after) = explode('group by', strtolower($this->query), 2);
 				$after=" group by".$after;
 			}
-			$this->query = $before.str_replace('pag_search_','', $joinby.$additional_statements).$after;
-			$this->query = str_replace('date_pg_search_','', $this->query );
-			$this->query = str_replace('pag_exact_search_','', $this->query );
-			$this->query = str_replace('pag_fulltext_search_','', $this->query );
-			$this->query = str_replace('pag_have_search_','', $this->query );
-			$this->query = str_replace('pag_lesser_search_','', $this->query );
-			$this->query = str_replace('pag_greater_search_','', $this->query );
-			$this->query = str_replace('pag_multiple_search_','', $this->query );
+			$this->query = $before.$joinby.$additional_statements.$after;
+			/*$this->query = $before.str_replace('lts__','', $joinby.$additional_statements).$after;
+			$this->query = $before.str_replace('gts__','', $joinby.$additional_statements).$after;
+			$this->query = $before.str_replace('ms__','', $joinby.$additional_statements).$after;
+			$this->query = $before.str_replace('js__','', $joinby.$additional_statements).$after;
+			$this->query = $before.str_replace('es__','', $joinby.$additional_statements).$after;
+		    $this->query = $before.str_replace('s__','', $joinby.$additional_statements).$after;*/
+			
 			
 			//echo $this->query; exit;
 			 // exit;	

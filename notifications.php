@@ -39,9 +39,8 @@ function  show_notification()
 		?>
 		<script>
 			setTimeout(function(){ 
-				alert("Hello"); 
-				$(".notif-alerts").hide(); 
-			}, 4000);
+				$(".notif-alerts").slideUp(); 
+			}, 3000);
 		</script>	
 		<?php
 		/* Removing all the notifcations that the user has seen*/

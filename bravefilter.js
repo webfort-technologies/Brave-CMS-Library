@@ -468,7 +468,7 @@ var app = new Vue({
                         if (last_type == "number" || last_type == "textarea") {
                             last_type = "string"
                         }
-                        if (last_type == "datepicker") {
+                        if (last_type == "datepicker" || last_type == "datetime") {
                             last_type = "date"
                         }
 

@@ -269,7 +269,7 @@ class pagination
 		
 		if(mysqli_num_rows($result)>0)
 		{
-			while($row=mysqli_fetch_array($result))
+			while($row=mysqli_fetch_assoc($result))
 			{
 					$result_array[]=$row;
 					
@@ -623,9 +623,9 @@ class pagination
 		{
 			$end_limit = $this->show_total_records();
 		}
-		?>	
-			Displaying <?php echo $starting_limit;  ?> - <?php echo $end_limit;  ?> of <?php echo $this->show_total_records(); ?> records
-		<?php
+			
+		$statement = "Displaying ". $starting_limit ." - " . $end_limit ." of ".  $this->show_total_records() ." records";
+		return $statement;
 	}
 
 }// Class Ends here 
