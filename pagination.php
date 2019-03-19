@@ -5,7 +5,7 @@
 	Last Modified on 	: 23/8/2017
 	Example of how to user the class starts here
 	$config['query'] = "SELECT * FROM issue_comments WHERE id = '".$_GET["issue_id"]."'";
-	$config['rows_per_page'] = 3;
+	$config['rows_per_page'] = 10;
 	$config['page_no_variable']="page_no";
 	$rec_page = new pagination($config);
 	$row_array  = $rec_page->get_array();
