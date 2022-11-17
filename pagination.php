@@ -150,7 +150,7 @@ class pagination
 	}
 	
 	// CONSTRUCTOR
-	function pagination($params=array())
+	function __construct($params=array())
 	{
 		if (count($params) > 0)
 		{

@@ -6,7 +6,7 @@ include("pagination_extended.php");
 	Website : shishirraven.com
 	Purpose : To extend the current pagination class to include new facilities such as follows. 
 	Created on : September 15, 2012
-	Last Modified on : Feburary, 02 1018
+	Last Modified on : Feburary, 02 2018
 	
 	1) Hover filters. 
 	2) Records Searches. 
